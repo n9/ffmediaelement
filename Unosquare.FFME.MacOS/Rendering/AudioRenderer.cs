@@ -1,12 +1,13 @@
 ﻿namespace Unosquare.FFME.MacOS.Rendering
 {
     using System;
+    using System.Threading.Tasks;
     using Unosquare.FFME.Shared;
 
     /// <summary>
     /// Provides Audio Output capabilities.
     /// </summary>
-    class AudioRenderer : IMediaRenderer
+    internal class AudioRenderer : IMediaRenderer
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="T:Unosquare.FFME.MacOS.Rendering.AudioRenderer"/> class.
@@ -23,36 +24,44 @@
         /// <value>The media element core.</value>
         public MediaEngine MediaCore { get; }
 
-        public void Close()
+        public async Task Close()
         {
+            await Task.CompletedTask;
         }
 
-        public void Pause()
+        public async Task Pause()
         {
+            await Task.CompletedTask;
         }
 
-        public void Play()
+        public async Task Play()
         {
+            await Task.CompletedTask;
         }
 
-        public void Render(MediaBlock mediaBlock, TimeSpan clockPosition)
+        public async Task Render(MediaBlock mediaBlock, TimeSpan clockPosition)
         {
+            await Task.CompletedTask;
         }
 
-        public void Seek()
+        public async Task Seek()
         {
+            await Task.CompletedTask;
         }
 
-        public void Stop()
+        public async Task Stop()
         {
+            await Task.CompletedTask;
         }
 
-        public void Update(TimeSpan clockPosition)
+        public async Task Update(TimeSpan clockPosition)
         {
+            await Task.CompletedTask;
         }
 
-        public void WaitForReadyState()
+        public async Task WaitForReadyState()
         {
+            await Task.CompletedTask;
         }
     }
 }

@@ -7,6 +7,7 @@
     using System.Runtime.InteropServices;
     using Unosquare.FFME.Primitives;
     using Unosquare.FFME.MacOS.Platform;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Provides Video Image Rendering via NSImage.
@@ -31,19 +32,22 @@
         /// <value>The media element core.</value>
         public MediaEngine MediaCore { get; }
 
-        public void Close()
+        public async Task Close()
         {
+            await Task.CompletedTask;
         }
 
-        public void Pause()
+        public async Task Pause()
         {
+            await Task.CompletedTask;
         }
 
-        public void Play()
+        public async Task Play()
         {
+            await Task.CompletedTask;
         }
 
-        public void Render(MediaBlock mediaBlock, TimeSpan clockPosition)
+        public async Task Render(MediaBlock mediaBlock, TimeSpan clockPosition)
         {
             var block = mediaBlock as VideoBlock;
             if (block == null) return;
@@ -54,12 +58,31 @@
             //}
 
             IsRenderingInProgress.Value = true;
-
             var size = block.BufferLength;
             var bytes = new byte[size];
             Marshal.Copy(block.Buffer, bytes, 0, size);
-
             Transform(block.Buffer, bytes, block.PixelWidth, block.PixelHeight);
+            await Task.CompletedTask;
+        }
+
+        public async Task Seek()
+        {
+            await Task.CompletedTask;
+        }
+
+        public async Task Stop()
+        {
+            await Task.CompletedTask;
+        }
+
+        public async Task Update(TimeSpan clockPosition)
+        {
+            await Task.CompletedTask;
+        }
+
+        public async Task WaitForReadyState()
+        {
+            await Task.CompletedTask;
         }
 
         private void Transform(IntPtr buffer, byte[] bytes, int width, int height)
@@ -71,16 +94,16 @@
                 //var provider = new CGDataProvider(buffer);
                 //var i = new CGImage(64, 64, 8, 24, 64 * 3, space, CGBitmapFlags.ByteOrderDefault, provider, null, false, CGColorRenderingIntent.Default);
                 var i = new CGImage(
-                    width, 
+                    width,
                     height,
                     Defaults.VideoBitsPerComponent,
-                    Defaults.VideoBitsPerPixel, 
-                    width * Defaults.VideoBytesPerPixel, 
-                    space, 
-                    CGBitmapFlags.ByteOrderDefault, 
-                    provider, 
-                    null, 
-                    false, 
+                    Defaults.VideoBitsPerPixel,
+                    width * Defaults.VideoBytesPerPixel,
+                    space,
+                    CGBitmapFlags.ByteOrderDefault,
+                    provider,
+                    null,
+                    false,
                     CGColorRenderingIntent.Default);
 
                 var nsImage = new NSImage(i, new CGSize(width, height));
@@ -93,22 +116,6 @@
             {
                 Console.WriteLine(e);
             }
-        }
-
-        public void Seek()
-        {
-        }
-
-        public void Stop()
-        {
-        }
-
-        public void Update(TimeSpan clockPosition)
-        {
-        }
-
-        public void WaitForReadyState()
-        {
         }
     }
 }

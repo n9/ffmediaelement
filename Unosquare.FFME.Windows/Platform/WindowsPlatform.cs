@@ -77,7 +77,7 @@
         public IMediaRenderer CreateRenderer(MediaType mediaType, MediaEngine mediaEngine)
         {
             if (mediaType == MediaType.Audio) return new AudioRenderer(mediaEngine);
-            else if (mediaType == MediaType.Video) return new VideoRenderer(mediaEngine);
+            else if (mediaType == MediaType.Video) return new WriteableVideoRenderer(mediaEngine);
             else if (mediaType == MediaType.Subtitle) return new SubtitleRenderer(mediaEngine);
 
             throw new NotSupportedException($"No suitable renderer for Media Type '{mediaType}'");

@@ -7,6 +7,7 @@
     using System;
     using System.Runtime.CompilerServices;
     using System.Threading;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Threading;
 
@@ -62,7 +63,7 @@
             if (WaveFormat.BitsPerSample != 16 || WaveFormat.Channels != 2)
                 throw new NotSupportedException("Wave Format has to be 16-bit and 2-channel.");
 
-            if (MediaElement.HasAudio)
+            if (MediaCore.HasAudio)
                 Initialize();
 
             if (Application.Current != null)
@@ -201,10 +202,11 @@
         /// </summary>
         /// <param name="mediaBlock">The media block.</param>
         /// <param name="clockPosition">The clock position.</param>
-        public void Render(MediaBlock mediaBlock, TimeSpan clockPosition)
+        /// <returns>The awaitable task</returns>
+        public async Task Render(MediaBlock mediaBlock, TimeSpan clockPosition)
         {
             // We don't need to render anything while we are seeking. Simply drop the blocks.
-            if (MediaElement.IsSeeking) return;
+            if (MediaCore.IsSeeking) return;
 
             // Update the speedratio
             SpeedRatio = MediaCore?.RealTimeClockSpeedRatio ?? 0d;
@@ -233,6 +235,8 @@
                 // Retrieve the following block
                 audioBlock = audioBlocks.Next(audioBlock) as AudioBlock;
             }
+
+            await Task.CompletedTask;
         }
 
         /// <summary>
@@ -240,44 +244,49 @@
         /// This needs to return immediately so the calling thread is not disturbed.
         /// </summary>
         /// <param name="clockPosition">The clock position.</param>
-        public void Update(TimeSpan clockPosition)
+        /// <returns>The awaitable task</returns>
+        public async Task Update(TimeSpan clockPosition)
         {
-            // placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed when the Play method is called on the parent MediaElement
         /// </summary>
-        public void Play()
+        /// <returns>The awaitable task</returns>
+        public async Task Play()
         {
-            // placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed when the Pause method is called on the parent MediaElement
         /// </summary>
-        public void Pause()
+        /// <returns>The awaitable task</returns>
+        public async Task Pause()
         {
-            // Placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed when the Pause method is called on the parent MediaElement
         /// </summary>
-        public void Stop()
+        /// <returns>The awaitable task</returns>
+        public async Task Stop()
         {
-            Seek();
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed when the Close method is called on the parent MediaElement
         /// </summary>
-        public void Close()
+        /// <returns>The awaitable task</returns>
+        public async Task Close()
         {
             // Yes, seek and destroy... coincidentally.
+            await Seek();
             lock (SyncLock)
             {
-                Seek();
                 Destroy();
             }
         }
@@ -285,7 +294,8 @@
         /// <summary>
         /// Executed after a Seek operation is performed on the parent MediaElement
         /// </summary>
-        public void Seek()
+        /// <returns>The awaitable task</returns>
+        public async Task Seek()
         {
             lock (SyncLock)
             {
@@ -294,14 +304,18 @@
                 if (ReadBuffer != null)
                     Array.Clear(ReadBuffer, 0, ReadBuffer.Length);
             }
+
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Waits for the renderer to be ready to render.
         /// </summary>
-        public void WaitForReadyState()
+        /// <returns>The awaitable task</returns>
+        public async Task WaitForReadyState()
         {
             WaitForReadyEvent?.WaitOne();
+            await Task.CompletedTask;
         }
 
         /// <summary>
@@ -333,7 +347,7 @@
                     WaitForReadyEvent.Set();
 
                     // Render silence if we don't need to output anything
-                    if (MediaElement.IsPlaying == false || SpeedRatio <= 0d || MediaElement.HasAudio == false || AudioBuffer.ReadableCount <= 0)
+                    if (MediaCore.IsPlaying == false || SpeedRatio <= 0d || MediaCore.HasAudio == false || AudioBuffer.ReadableCount <= 0)
                     {
                         Array.Clear(targetBuffer, targetBufferOffset, requestedBytes);
                         return requestedBytes;
@@ -344,7 +358,7 @@
                         ReadBuffer = new byte[(int)(requestedBytes * Defaults.MaxSpeedRatio)];
 
                     // Perform AV Synchronization if needed
-                    if (MediaElement.HasVideo && Synchronize(targetBuffer, targetBufferOffset, requestedBytes) == false)
+                    if (MediaCore.HasVideo && Synchronize(targetBuffer, targetBufferOffset, requestedBytes) == false)
                         return requestedBytes;
 
                     // Perform DSP
@@ -579,7 +593,7 @@
 
             if (bytesToRead > AudioBuffer.ReadableCount)
             {
-                Seek();
+                Seek().GetAwaiter().GetResult();
                 return;
             }
 

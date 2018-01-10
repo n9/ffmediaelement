@@ -3,6 +3,7 @@
     using Core;
     using System.Text;
     using Shared;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Implements the logic to close a media stream.
@@ -42,16 +43,8 @@
             foreach (var renderer in m.Renderers.Values)
                 renderer.Close();
 
-            // Wait for worker threads to finish
-            var wrokers = new[] { m.PacketReadingTask, m.FrameDecodingTask, m.BlockRenderingTask };
-            foreach (var w in wrokers)
-            {
-                // Abort causes memory leaks bacause packets and frames might not get disposed by the corresponding workers.
-                // w.Abort();
-
-                // Wait for all threads to join
-                w.Join();
-            }
+            // Wait for worker tasks to finish
+            Task.WhenAll(m.PacketReadingTask, m.FrameDecodingTask, m.BlockRenderingTask).GetAwaiter().GetResult();
 
             // Set the threads to null
             m.BlockRenderingTask = null;

@@ -19,6 +19,7 @@
 #if !HANDLE_RENDERING_EVENTS
             return;
 #endif
+
             // We can extract the closed caption data into a file if we need to.
             var closedCaptionsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "608.bin");
             var saveClosedCaptions = false;

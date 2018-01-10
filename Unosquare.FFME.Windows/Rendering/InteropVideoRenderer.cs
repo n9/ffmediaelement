@@ -5,14 +5,15 @@
     using Shared;
     using System;
     using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
     using System.Windows.Media;
     using System.Windows.Threading;
 
     /// <summary>
-    /// Provides Video Image Rendering via a WPF Writable Bitmap
+    /// Provides Video Image Rendering via a WPF Interop Bitmap
     /// </summary>
     /// <seealso cref="Unosquare.FFME.Shared.IMediaRenderer" />
-    internal sealed class VideoRenderer : IMediaRenderer, IDisposable
+    internal sealed class InteropVideoRenderer : IVideoRenderer, IDisposable
     {
         #region Private State
 
@@ -30,10 +31,10 @@
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VideoRenderer"/> class.
+        /// Initializes a new instance of the <see cref="InteropVideoRenderer"/> class.
         /// </summary>
         /// <param name="mediaEngine">The core media element.</param>
-        public VideoRenderer(MediaEngine mediaEngine)
+        public InteropVideoRenderer(MediaEngine mediaEngine)
         {
             MediaCore = mediaEngine;
             SourceBitmap = new SharedMemoryBitmap(this);
@@ -60,31 +61,35 @@
         /// <summary>
         /// Executed when the Play method is called on the parent MediaElement
         /// </summary>
-        public void Play()
+        /// <returns>The awaitable task</returns>
+        public async Task Play()
         {
-            // placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed when the Pause method is called on the parent MediaElement
         /// </summary>
-        public void Pause()
+        /// <returns>The awaitable task</returns>
+        public async Task Pause()
         {
-            // placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed when the Pause method is called on the parent MediaElement
         /// </summary>
-        public void Stop()
+        /// <returns>The awaitable task</returns>
+        public async Task Stop()
         {
-            // placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed when the Close method is called on the parent MediaElement
         /// </summary>
-        public void Close()
+        /// <returns>The awaitable task</returns>
+        public async Task Close()
         {
             WindowsPlatform.Instance.Gui?.Invoke(DispatcherPriority.Render, () =>
             {
@@ -92,23 +97,27 @@
             });
 
             Dispose();
+
+            // TODO: We can await the GUI call
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed after a Seek operation is performed on the parent MediaElement
         /// </summary>
-        public void Seek()
+        /// <returns>The awaitable task</returns>
+        public async Task Seek()
         {
-            // placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Waits for the renderer to be ready to render.
         /// </summary>
-        public void WaitForReadyState()
+        /// <returns>The awaitable task</returns>
+        public async Task WaitForReadyState()
         {
-            // placeholder
-            // we don't need to be ready.
+            await Task.CompletedTask;
         }
 
         /// <summary>
@@ -117,7 +126,8 @@
         /// </summary>
         /// <param name="mediaBlock">The media block.</param>
         /// <param name="clockPosition">The clock position.</param>
-        public void Render(MediaBlock mediaBlock, TimeSpan clockPosition)
+        /// <returns>The awaitable task</returns>
+        public async Task Render(MediaBlock mediaBlock, TimeSpan clockPosition)
         {
             var block = mediaBlock as VideoBlock;
             if (block == null) return;
@@ -125,7 +135,7 @@
             // Skip if rendering is currently in progress
             if (IsRenderingInProgress.Value == true)
             {
-                MediaElement?.MediaCore?.Log(MediaLogMessageType.Debug, $"{nameof(VideoRenderer)}: Frame skipped at {mediaBlock.StartTime}");
+                MediaElement?.MediaCore?.Log(MediaLogMessageType.Debug, $"{nameof(InteropVideoRenderer)}: Frame skipped at {mediaBlock.StartTime}");
                 return;
             }
 
@@ -149,7 +159,7 @@
                     {
                         MediaElement?.MediaCore?.Log(
                             MediaLogMessageType.Error, 
-                            $"{nameof(VideoRenderer)} {ex.GetType()}: {ex.Message}. Stack Trace:\r\n{ex.StackTrace}");
+                            $"{nameof(InteropVideoRenderer)} {ex.GetType()}: {ex.Message}. Stack Trace:\r\n{ex.StackTrace}");
                     }
                     finally
                     {
@@ -157,6 +167,9 @@
                     }
                 }), block,
                 clockPosition);
+
+            // TODO: we could await GUI calls
+            await Task.CompletedTask;
         }
 
         /// <summary>
@@ -164,9 +177,10 @@
         /// This needs to return immediately so the calling thread is not disturbed.
         /// </summary>
         /// <param name="clockPosition">The clock position.</param>
-        public void Update(TimeSpan clockPosition)
+        /// <returns>The awaitable task</returns>
+        public async Task Update(TimeSpan clockPosition)
         {
-            // placeholder
+            await Task.CompletedTask;
         }
 
         #endregion

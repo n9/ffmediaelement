@@ -1,9 +1,9 @@
 ﻿namespace Unosquare.FFME.Rendering
 {
-    using Platform;
     using Shared;
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Threading;
 
@@ -42,6 +42,7 @@
         /// <summary>
         /// Gets the parent media element (platform specific).
         /// </summary>
+        /// <returns>The awaitable task</returns>
         public MediaElement MediaElement => MediaCore?.Parent as MediaElement;
 
         /// <summary>
@@ -52,51 +53,57 @@
         /// <summary>
         /// Executed when the Close method is called on the parent MediaElement
         /// </summary>
-        public void Close()
+        /// <returns>The awaitable task</returns>
+        public async Task Close()
         {
-            SetText(string.Empty);
+            await SetText(string.Empty);
         }
 
         /// <summary>
         /// Executed when the Pause method is called on the parent MediaElement
         /// </summary>
-        public void Pause()
+        /// <returns>The awaitable task</returns>
+        public async Task Pause()
         {
-            // Placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed when the Play method is called on the parent MediaElement
         /// </summary>
-        public void Play()
+        /// <returns>The awaitable task</returns>
+        public async Task Play()
         {
-            // placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Executed when the Pause method is called on the parent MediaElement
         /// </summary>
-        public void Stop()
+        /// <returns>The awaitable task</returns>
+        public async Task Stop()
         {
-            SetText(string.Empty);
+            await SetText(string.Empty);
         }
 
         /// <summary>
         /// Executed after a Seek operation is performed on the parent MediaElement
         /// </summary>
-        public void Seek()
+        /// <returns>The awaitable task</returns>
+        public async Task Seek()
         {
-            // placeholder
+            await Task.CompletedTask;
         }
 
         /// <summary>
         /// Waits for the renderer to be ready to render.
         /// </summary>
-        public void WaitForReadyState()
+        /// <returns>The awaitable task</returns>
+        public async Task WaitForReadyState()
         {
             // This initializes the text blocks
             // for subtitle rendering automatically.
-            SetText(string.Empty);
+            await SetText(string.Empty);
         }
 
         /// <summary>
@@ -104,7 +111,8 @@
         /// </summary>
         /// <param name="mediaBlock">The media block.</param>
         /// <param name="clockPosition">The clock position.</param>
-        public void Render(MediaBlock mediaBlock, TimeSpan clockPosition)
+        /// <returns>The awaitable task</returns>
+        public async Task Render(MediaBlock mediaBlock, TimeSpan clockPosition)
         {
             lock (SyncLock)
             {
@@ -120,10 +128,10 @@
                 BlockText = MediaElement.RaiseRenderingSubtitlesEvent(subtitleBlock, clockPosition)
                     ? string.Empty
                     : string.Join("\r\n", subtitleBlock.Text);
-
-                // Call the selective update method
-                Update(clockPosition);
-            }
+            }                
+            
+            // Call the selective update method
+            await Update(clockPosition);
         }
 
         /// <summary>
@@ -131,25 +139,26 @@
         /// This needs to return immediately so the calling thread is not disturbed.
         /// </summary>
         /// <param name="clockPosition">The clock position.</param>
-        public void Update(TimeSpan clockPosition)
+        /// <returns>The awaitable task</returns>
+        public async Task Update(TimeSpan clockPosition)
         {
             // Check if we have received a start and end time value.
             // if we have not, just clear the text
             if (StartTime.HasValue == false || EndTime.HasValue == false)
             {
-                SetText(string.Empty);
+                await SetText(string.Empty);
                 return;
             }
 
             // Check if the subtitle needs to be cleared based on the start and end times range
             if (clockPosition > EndTime.Value || clockPosition < StartTime.Value)
             {
-                SetText(string.Empty);
+                await SetText(string.Empty);
                 return;
             }
 
             // Update the text with the block text
-            SetText(BlockText);
+            await SetText(BlockText);
         }
 
         /// <summary>
@@ -223,13 +232,14 @@
         /// Returns immediately because it enqueues the action on the UI thread.
         /// </summary>
         /// <param name="text">The text.</param>
-        private void SetText(string text)
+        /// <returns>The awaitable task</returns>
+        private async Task SetText(string text)
         {
             if (RenderedText.Equals(text))
                 return;
 
             // We fire-and-forget the update of the text
-            WindowsPlatform.Instance.Gui?.EnqueueInvoke(
+            await MediaElement?.Dispatcher?.BeginInvoke(
                 DispatcherPriority.DataBind,
                 new Action<string>((s) =>
                 {

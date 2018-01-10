@@ -33,9 +33,9 @@
             { MediaType.Subtitle, 120 }
         };
 
-        internal Thread PacketReadingTask = null;
-        internal Thread FrameDecodingTask = null;
-        internal Thread BlockRenderingTask = null;
+        internal Task PacketReadingTask = null;
+        internal Task FrameDecodingTask = null;
+        internal Task BlockRenderingTask = null;
 
 #pragma warning restore SA1401 // Fields must be private
 
@@ -124,7 +124,8 @@
         /// It reports on DownloadProgress by enqueueing an update to the property
         /// in order to avoid any kind of disruption to this thread caused by the UI thread.
         /// </summary>
-        internal void RunPacketReadingWorker()
+        /// <returns>The awaitable task</returns>
+        internal async Task RunPacketReadingWorker()
         {
             try
             {
@@ -194,7 +195,7 @@
 
                     // Wait some if we have a full packet buffer or we are unable to read more packets (i.e. EOF).
                     if (mediaContainer.Components.PacketBufferLength >= DownloadCacheLength || CanReadMorePackets == false || currentBytesRead <= 0)
-                        Task.Delay(1).GetAwaiter().GetResult();
+                        await Task.Delay(1);
                 }
             }
             catch (ThreadAbortException)
@@ -220,7 +221,8 @@
         /// many frames as possible in each frame queue and
         /// up to the MaxFrames on each component
         /// </summary>
-        internal void RunFrameDecodingWorker()
+        /// <returns>The awaitable task</returns>
+        internal async Task RunFrameDecodingWorker()
         {
             try
             {
@@ -270,7 +272,7 @@
 
                         // Call the seek method on all renderers
                         foreach (var kvp in Renderers)
-                            kvp.Value.Seek();
+                            await kvp.Value.Seek();
 
                         SendOnSeekingEnded();
                     }
@@ -340,7 +342,7 @@
                                 Clock.Position = wallClock;
 
                                 // Call seek to invalidate renderer
-                                Renderers[main].Seek();
+                                await Renderers[main].Seek();
                             }
                         }
                         else
@@ -373,7 +375,8 @@
                         isInRange = blocks.IsInRange(wallClock);
 
                         // Invalidate the renderer if we don't have the block.
-                        if (isInRange == false) Renderers[t].Seek();
+                        if (isInRange == false)
+                            await Renderers[t].Seek();
 
                         // wait for component to get there if we only have furutre blocks
                         // in auxiliary component.
@@ -466,7 +469,7 @@
                     // Give it a break if there was nothing to decode.
                     // We probably need to wait for some more input
                     if (decodedFrameCount <= 0 && Commands.PendingCount <= 0)
-                        Task.Delay(1).GetAwaiter().GetResult();
+                        await Task.Delay(1);
 
                     #endregion
                 }
@@ -494,7 +497,8 @@
         /// block buffer. This task is responsible for keeping track of the clock
         /// and calling the render methods appropriate for the current clock position.
         /// </summary>
-        internal void RunBlockRenderingWorker()
+        /// <returns>The aswaitable task</returns>
+        internal async Task RunBlockRenderingWorker()
         {
             try
             {
@@ -521,7 +525,7 @@
                 // used to calculate the ticks elapsed in the render operations
                 var renderStopWatch = new Stopwatch();
                 renderStopWatch.Start();
-                
+
                 // reset render times for all components
                 foreach (var t in all)
                     LastRenderTime[t] = TimeSpan.MinValue;
@@ -596,7 +600,7 @@
 
                     // Delay the thread for a bit if the render timeout has expired
                     if (!IsSeeking && renderStopWatch.ElapsedMilliseconds < renderTimeoutMs)
-                        Task.Delay(1).GetAwaiter().GetResult();
+                        await Task.Delay(1);
 
                     // Restart the stopwatch if the timeout was reached or if we rendered something
                     if (renderedBlockCount > 0 || renderStopWatch.ElapsedMilliseconds >= renderTimeoutMs)
@@ -646,20 +650,10 @@
             FrameDecodingCycle.Reset();
             PacketReadingCycle.Reset();
 
-            // Create the thread runners
-            PacketReadingTask = new Thread(RunPacketReadingWorker)
-            { IsBackground = true, Name = nameof(PacketReadingTask), Priority = ThreadPriority.Normal };
-
-            FrameDecodingTask = new Thread(RunFrameDecodingWorker)
-            { IsBackground = true, Name = nameof(FrameDecodingTask), Priority = ThreadPriority.AboveNormal };
-
-            BlockRenderingTask = new Thread(RunBlockRenderingWorker)
-            { IsBackground = true, Name = nameof(BlockRenderingTask), Priority = ThreadPriority.Normal };
-
-            // Fire up the threads
-            PacketReadingTask.Start();
-            FrameDecodingTask.Start();
-            BlockRenderingTask.Start();
+            // Create and run the thread runners
+            PacketReadingTask = Task.Run(() => { RunPacketReadingWorker().GetAwaiter().GetResult(); });
+            FrameDecodingTask = Task.Run(() => { RunFrameDecodingWorker().GetAwaiter().GetResult(); });
+            BlockRenderingTask = Task.Run(() => { RunBlockRenderingWorker().GetAwaiter().GetResult(); });
         }
 
         /// <summary>

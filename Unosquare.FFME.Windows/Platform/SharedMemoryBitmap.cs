@@ -28,9 +28,9 @@
         private InteropBitmap RenderBitmapSource = null;
         private SharedMemory InteropMemory = null;
         private int BufferLength = 0;
-        private VideoRenderer Renderer;
+        private InteropVideoRenderer Renderer;
 
-        public SharedMemoryBitmap(VideoRenderer videoRenderer)
+        public SharedMemoryBitmap(InteropVideoRenderer videoRenderer)
         {
             Renderer = videoRenderer;
 

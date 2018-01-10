@@ -90,6 +90,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Events\IBitmapContext.cs" />
     <Compile Include="Events\RenderingAudioEventArgs.cs" />
     <Compile Include="Events\RenderingEventArgs.cs" />
     <Compile Include="Events\RenderingSubtitlesEventArgs.cs" />
@@ -105,6 +106,7 @@
     <Compile Include="Platform\WpfGuiContext.cs" />
     <Compile Include="Events\PositionChangedRoutedEventArgs.cs" />
     <Compile Include="Platform\SharedMemoryBitmap.cs" />
+    <Compile Include="Platform\IVideoRenderer.cs" />
     <Compile Include="Rendering\SoundTouch.cs" />
     <Compile Include="Rendering\Wave\IWaveProvider.cs" />
     <Compile Include="Rendering\Wave\MmResult.cs" />
@@ -132,7 +134,8 @@
     </Compile>
     <Compile Include="Rendering\AudioRenderer.cs" />
     <Compile Include="Rendering\SubtitleRenderer.cs" />
-    <Compile Include="Rendering\VideoRenderer.cs" />
+    <Compile Include="Rendering\InteropVideoRenderer.cs" />
+    <Compile Include="Rendering\WriteableVideoRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
